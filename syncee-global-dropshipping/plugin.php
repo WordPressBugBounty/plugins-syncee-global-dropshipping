@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define constants.
-define( 'SYNCEE_PLUGIN_VERSION', '1.0.23' );
+define( 'SYNCEE_PLUGIN_VERSION', '1.0.25' );
 
 //DEMO
 //define( 'SYNCEE_URL', 'https://demo.v5.syncee.io' );
