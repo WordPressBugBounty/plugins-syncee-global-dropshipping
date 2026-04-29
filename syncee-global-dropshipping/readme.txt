@@ -2,7 +2,7 @@
 Tags: products, suppliers, ecommerce, dropship, dropshipping
 Requires at least: 4.6
 Tested up to: 6.9
-Stable tag: 1.0.25
+Stable tag: 1.0.26
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -90,12 +90,14 @@ Try Syncee now, an excellent alternative to Faire, Ankorstore, Orderchamp, Carro
 * Readme modified.
 = 1.0.25 =
 * Wordpress version tested.
+= 1.0.26 =
+* Readme modified.
 
 == Frequently Asked Questions ==
 
 =How much does it cost to use Syncee?=
 
-Syncee offers a 3-day free trial for retailers on all monthly plans. There is also a free plan available with features ideal for getting started. With our paid plans, retailers can access more features and automate workflows. Our pricing is based on the product number, not variant SKU.
+Syncee offers a 7-day free trial for retailers on all monthly plans. There is also a free plan available with features ideal for getting started. With our paid plans, retailers can access more features and automate workflows. Our pricing is based on the product number, not variant SKU.
 
 =How do I reach out to Syncee's customer support?=
 

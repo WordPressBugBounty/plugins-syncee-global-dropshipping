@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Syncee Premium Dropshipping & Wholesale
  * Description: Find dropshipping and wholesale products from trusted US/CA/EU/AU suppliers, import them to [your WooCommerce store](https://syncee.com/woocommerce/).
- * Version: 1.0.23
+ * Version: 1.0.26
  * Author: Syncee
  * Author URI: https://syncee.com
  *
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define constants.
-define( 'SYNCEE_PLUGIN_VERSION', '1.0.25' );
+define( 'SYNCEE_PLUGIN_VERSION', '1.0.26' );
 
 //DEMO
 //define( 'SYNCEE_URL', 'https://demo.v5.syncee.io' );
