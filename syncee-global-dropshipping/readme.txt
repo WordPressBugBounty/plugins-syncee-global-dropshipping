@@ -1,9 +1,9 @@
 === Syncee Premium Dropshipping & Wholesale ===
 Tags: products, suppliers, ecommerce, dropship, dropshipping
 Requires at least: 4.6
-Tested up to: 6.9
-Stable tag: 1.0.26
-Requires PHP: 7.2
+Tested up to: 7.0
+Stable tag: 1.0.27
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -92,6 +92,8 @@ Try Syncee now, an excellent alternative to Faire, Ankorstore, Orderchamp, Carro
 * Wordpress version tested.
 = 1.0.26 =
 * Readme modified.
+= 1.0.27 =
+* Tested up to WordPress 7.0. Minimum PHP raised to 7.4.
 
 == Frequently Asked Questions ==
 
