@@ -1,148 +1,88 @@
 <?php
+/**
+ * Syncee admin page template. Rendered inside the WP admin shell via
+ * Syncee::synceeMenu(); MUST NOT include outer <html>/<body>.
+ *
+ * Expects $img_url in scope (set by the caller).
+ *
+ * @var string $img_url Trailing-slash URL of the plugin's img/ directory.
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 ?>
+<div class="wrap syncee-admin">
+    <h1 class="screen-reader-text"><?php esc_html_e('Syncee', 'syncee'); ?></h1>
 
-
-<html lang="en">
-<header>
-    <style>
-        .syncee-logo-container {
-            width: 300pt;
-        }
-
-        .syncee-logo {
-            width: 200pt;
-            margin: 25px;
-
-        }
-
-        .syncee-table {
-            border-collapse: collapse;
-        }
-
-        .syncee-td, .syncee-th {
-            border: 1px solid #999;
-            padding: 0.5rem;
-            text-align: left;
-        }
-
-        .syncee-body {
-
-        }
-
-        .syncee-button {
-            display: inline-block;
-            font-weight: 400;
-            line-height: 1.5;
-            color: #212529;
-            text-align: center;
-            text-decoration: none;
-            vertical-align: middle;
-            cursor: pointer;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
-            background-color: transparent;
-            border: 0 solid transparent;
-            border-radius: 100px;
-            font-size: 14px;
-            padding: 0 36px;
-            min-height: 36px;
-        }
-
-        .syncee-button-secondary {
-            color: #fff;
-            background-color: #0d6efd;
-            /*border-color: #0d6efd;*/
-        }
-
-        .syncee-button-warning {
-            color: #EF5350;
-            background-color: #FFCDD2;
-            /*border-color: #FFCDD2;*/
-        }
-
-        #registerToWoocommerce, #registerToSyncee, #openSyncee {
-            display: none;
-        }
-
-    </style>
-</header>
-
-<body class="syncee-body">
-
-<div class="syncee-logo-container">
-    <img src="" alt="syncee logo" class="syncee-logo" id="syncee-logo">
-</div>
-<div id="requirementsTable"></div>
-
-<div>
-    <div>
-
-
-        <div id="registerToWoocommerce">
-            <h2>Sign up Syncee to Woocommerce</h2>
-            <p>You have to allow Woocommerce access for Syncee.</p>
-            <button id="registerToWoocommerceButton" class="syncee-button syncee-button-secondary">Sign up Syncee to
-                Woocommerce
-            </button>
-            <br>
-            <br>
-        </div>
-
-
-        <div id="registerToSyncee">
-            <h2>Sign up to Syncee</h2>
-            <p>You have to sign up to the Syncee.</p>
-            <button id="registerToSynceeButton" class="syncee-button syncee-button-secondary">Sign up to Syncee</button>
-            <br>
-            <br>
-        </div>
-
-
-        <div id="openSyncee">
-            <p>Your store has been successfully connected to your Syncee account.</p>
-            <button id="openSynceeButton" class="syncee-button syncee-button-secondary">Go to Syncee</button>
-            <button id="uninstallEcomButton" class="syncee-button syncee-button-warning">Disconnect from Syncee</button>
-            <br>
-            <br>
-        </div>
-
-
-        <div id="refresh">
-            <button id="refreshButton" class="syncee-button">Refresh</button>
-            <br>
-            <br>
-        </div>
-
-
-        <div id="support-team">
-            <br>
-            <p>If you have any questions or need assistance, contact the Syncee team at support@syncee.co</p>
-            <br>
-
-        </div>
-        <div>
-            <a target="_blank" href="https://help.syncee.co/en/articles/5074038-how-to-install-syncee-to-your-wordpress-store-woocommerce-integration" class="syncee-button">Integration</a>
-            <a target="_blank"  href="https://help.syncee.co/en/articles/6294863-woocommerce-system-requirements" class="syncee-button">Requirements</a>
-        </div>
-
+    <div class="syncee-logo-container">
+        <img
+            src="<?php echo esc_url($img_url . 'syncee-logo-600x.png'); ?>"
+            alt="<?php esc_attr_e('Syncee', 'syncee'); ?>"
+            class="syncee-logo"
+            id="syncee-logo"
+        >
     </div>
+
+    <div id="requirementsTable"></div>
+
+    <div id="registerToWoocommerce" class="syncee-step">
+        <h2><?php esc_html_e('Sign up Syncee to WooCommerce', 'syncee'); ?></h2>
+        <p><?php esc_html_e('You have to allow WooCommerce access for Syncee.', 'syncee'); ?></p>
+        <p>
+            <button id="registerToWoocommerceButton" type="button" class="button button-primary button-hero">
+                <?php esc_html_e('Sign up Syncee to WooCommerce', 'syncee'); ?>
+            </button>
+        </p>
+    </div>
+
+    <div id="registerToSyncee" class="syncee-step">
+        <h2><?php esc_html_e('Sign up to Syncee', 'syncee'); ?></h2>
+        <p><?php esc_html_e('You have to sign up to Syncee.', 'syncee'); ?></p>
+        <p>
+            <button id="registerToSynceeButton" type="button" class="button button-primary button-hero">
+                <?php esc_html_e('Sign up to Syncee', 'syncee'); ?>
+            </button>
+        </p>
+    </div>
+
+    <div id="openSyncee" class="syncee-step">
+        <div class="notice notice-success inline">
+            <p><?php esc_html_e('Your store has been successfully connected to your Syncee account.', 'syncee'); ?></p>
+        </div>
+        <p class="syncee-actions">
+            <button id="openSynceeButton" type="button" class="button button-primary button-hero">
+                <?php esc_html_e('Go to Syncee', 'syncee'); ?>
+            </button>
+            <button id="uninstallEcomButton" type="button" class="button button-link-delete">
+                <?php esc_html_e('Disconnect from Syncee', 'syncee'); ?>
+            </button>
+        </p>
+    </div>
+
+    <p class="syncee-refresh">
+        <button id="refreshButton" type="button" class="button">
+            <?php esc_html_e('Refresh', 'syncee'); ?>
+        </button>
+    </p>
+
+    <p class="syncee-support">
+        <?php
+        printf(
+            /* translators: %s: support email link */
+            esc_html__('If you have any questions or need assistance, contact the Syncee team at %s.', 'syncee'),
+            '<a href="mailto:support@syncee.co">support@syncee.co</a>'
+        );
+        ?>
+    </p>
+
+    <p class="syncee-help-links">
+        <a target="_blank" rel="noopener" href="https://help.syncee.co/en/articles/5074038-how-to-install-syncee-to-your-wordpress-store-woocommerce-integration">
+            <?php esc_html_e('Integration guide', 'syncee'); ?>
+        </a>
+        <span aria-hidden="true">&nbsp;|&nbsp;</span>
+        <a target="_blank" rel="noopener" href="https://help.syncee.co/en/articles/6294863-woocommerce-system-requirements">
+            <?php esc_html_e('Requirements', 'syncee'); ?>
+        </a>
+    </p>
 </div>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

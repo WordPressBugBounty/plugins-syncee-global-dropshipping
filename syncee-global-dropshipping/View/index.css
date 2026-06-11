@@ -1,57 +1,73 @@
-.syncee-logo-container {
-    width: 300pt;
-}
-.syncee-logo {
-    width: 200pt;
-    margin: 25px;
-
+.syncee-admin {
+    max-width: 720px;
 }
 
-.syncee-table {
-    border-collapse: collapse;
+.syncee-admin .syncee-logo-container {
+    margin: 1.5rem 0;
 }
 
-.syncee-td, .syncee-th {
-    border: 1px solid #999;
-    padding: 0.5rem;
-    text-align: left;
+.syncee-admin .syncee-logo {
+    max-width: 220px;
+    height: auto;
+    display: block;
 }
 
-.syncee-body {
-
-}
-
-.syncee-button {
-    display: inline-block;
-    font-weight: 400;
-    line-height: 1.5;
-    color: #212529;
-    text-align: center;
-    text-decoration: none;
-    vertical-align: middle;
-    cursor: pointer;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    user-select: none;
-    background-color: transparent;
-    border: 0 solid transparent;
-    border-radius: 100px;
-    font-size: 14px;
-    padding: 0 36px;
-    min-height: 36px;
-}
-.syncee-button-secondary{
-    color: #fff;
-    background-color: #0d6efd;
-    /*border-color: #0d6efd;*/
-}
-
-.syncee-button-warning{
-    color: #EF5350;
-    background-color: #FFCDD2;
-    /*border-color: #FFCDD2;*/
-}
-
-#registerToWoocommerce, #registerToSyncee, #openSyncee {
+.syncee-admin .syncee-step {
     display: none;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.syncee-admin .syncee-step h2 {
+    margin-top: 0;
+}
+
+.syncee-admin .syncee-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 1rem 0 0;
+}
+
+.syncee-admin .syncee-refresh {
+    margin: 1.5rem 0 0;
+}
+
+.syncee-admin .syncee-support,
+.syncee-admin .syncee-help-links {
+    color: #50575e;
+    font-size: 13px;
+}
+
+.syncee-admin .syncee-help-links a {
+    text-decoration: none;
+}
+
+.syncee-admin .syncee-help-links a:hover,
+.syncee-admin .syncee-help-links a:focus {
+    text-decoration: underline;
+}
+
+/* Requirements table built by JS/index.js generateTable() */
+.syncee-admin .syncee-table {
+    border-collapse: collapse;
+    margin: 0 0 1rem;
+    width: 100%;
+}
+
+.syncee-admin .syncee-th,
+.syncee-admin .syncee-td {
+    border: 1px solid #c3c4c7;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.syncee-admin .syncee-th {
+    background: #f6f7f7;
+    font-weight: 600;
 }

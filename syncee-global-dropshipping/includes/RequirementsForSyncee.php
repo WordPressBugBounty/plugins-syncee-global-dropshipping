@@ -7,8 +7,6 @@
 class RequirementsForSyncee
 {
 
-    public static $x = 10;
-
     /**
      * Checks if cURL is activated on php installation.
      *
@@ -16,12 +14,12 @@ class RequirementsForSyncee
      */
     public static function checkCurlForSyncee()
     {
-        if (!in_array('curl', get_loaded_extensions())) {
+        if (!extension_loaded('curl')) {
             return array(
                 'title' => __('PHP cURL', 'syncee'),
                 'pass' => false,
                 'reason' => __('PHP cURL seems to be disabled or not installed on your server.', 'syncee'),
-                'solution' => __('Please activate cURL to use the syncee plugin. <br>')
+                'solution' => __('Please activate cURL to use the syncee plugin. <br>', 'syncee')
             );
         }
 
@@ -38,13 +36,14 @@ class RequirementsForSyncee
      */
     public static function checkSSLConnectionForSyncee()
     {
-        if (!getenv('IS_DEV') && (!isset($_SERVER['HTTPS']) || empty($_SERVER['HTTPS']) || 'on' !== strtolower($_SERVER['HTTPS']))) {
+        if (!getenv('IS_DEV') && !is_ssl()) {
             return array(
                 'title' => __('SSL Connection', 'syncee'),
                 'pass' => false,
                 'reason' => __('You are not using a SSL connection', 'syncee'),
                 'solution' => __(
-                    'Please set up a HTTPS certificate to use syncee.<br>'
+                    'Please set up a HTTPS certificate to use syncee.<br>',
+                    'syncee'
                 ),
             );
         }

@@ -12,10 +12,10 @@ jQuery(document).ready(function () {
 
         let synceePluginRestUrl = syncee_globals.rest_url;
         let synceePluginSiteUrl = syncee_globals.site_url;
-        let syncee_access_token = syncee_globals.syncee_access_token;
-        let syncee_user_token = syncee_globals.syncee_user_token;
-        let dataToSynceeInstaller = syncee_globals.data_to_syncee_installer;
-        let syncee_img_dir_url = syncee_globals.img_dir_url;
+        // Sensitive values are no longer localized; getDataForFrontend populates them.
+        let syncee_access_token = null;
+        let syncee_user_token = null;
+        let dataToSynceeInstaller = null;
         let installerCallbackUrl = syncee_globals.syncee_installer_url + '/woocommerce_auth/callback?';
         let synceeRedirect = syncee_globals.syncee_url + '/crosslogin?token=';
         let synceeV7Redirect = syncee_globals.syncee_installer_url + '/woocommerce_auth/login-with-token?token=';
@@ -30,34 +30,70 @@ jQuery(document).ready(function () {
         let passed = false;
 
 
-        function setSynceeLogoSrc() {
-            jQuery("#syncee-logo").attr("src", syncee_img_dir_url + 'syncee-logo-600x.png');
-
+        function startInstallFlow(stage) {
+            return jQuery.ajax({
+                url: synceePluginRestUrl + 'startInstallFlow',
+                type: 'POST',
+                dataType: 'json',
+                data: { stage: stage },
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', synceeRetailerNonce);
+                }
+            }).then(function (result) {
+                if (!result || !result.success || !result.data || !result.data.state) {
+                    throw new Error('startInstallFlow failed');
+                }
+                return result.data.state;
+            });
         }
 
         function connectedToSyncee() {
-            return syncee_access_token;
+            // V5 retailers populate syncee_access_token; V7 retailers populate
+            // syncee_user_token. Either is sufficient to consider the store
+            // connected to Syncee.
+            return syncee_access_token || syncee_user_token;
         }
 
 
         jQuery("#registerToWoocommerceButton").click(function () {
-            window.open(synceePluginSiteUrl + '/wc-auth/v1/authorize?app_name=Syncee&scope=read_write&user_id=1&return_url=' + synceePluginSiteUrl + '/wp-admin/admin.php?page=syncee&callback_url=' + encodeURIComponent(synceePluginSiteUrl + '/wp-json/syncee/retailer/v1/callbackFromWoocommerce'))
+            startInstallFlow('woocommerce_auth').then(function (state) {
+                var callbackUrl = synceePluginSiteUrl + '/wp-json/syncee/retailer/v1/callbackFromWoocommerce?state=' + encodeURIComponent(state);
+                var returnUrl = synceePluginSiteUrl + '/wp-admin/admin.php?page=syncee';
+                window.open(
+                    synceePluginSiteUrl + '/wc-auth/v1/authorize'
+                    + '?app_name=Syncee'
+                    + '&scope=read_write'
+                    + '&user_id=1'
+                    + '&return_url=' + encodeURIComponent(returnUrl)
+                    + '&callback_url=' + encodeURIComponent(callbackUrl)
+                );
+            }, function () {
+                swal('Failed!', 'Could not start the WooCommerce auth flow. Please refresh and try again.', 'warning');
+            });
         });
 
 
         jQuery("#registerToSynceeButton").click(function () {
-            window.open(installerCallbackUrl + jQuery.param(dataToSynceeInstaller));
+            if (!dataToSynceeInstaller) {
+                swal('Failed!', 'Missing WooCommerce credentials. Please complete the WooCommerce auth step first.', 'warning');
+                return;
+            }
+            startInstallFlow('syncee_install').then(function (state) {
+                window.open(installerCallbackUrl + jQuery.param(dataToSynceeInstaller) + '&state=' + encodeURIComponent(state));
+            }, function () {
+                swal('Failed!', 'Could not start the Syncee install flow. Please refresh and try again.', 'warning');
+            });
         });
 
 
         jQuery("#openSynceeButton").click(function () {
-            if (connectedToSyncee){
+            if (connectedToSyncee()) {
                 if (syncee_user_token) {
-                    window.open(synceeV7Redirect + syncee_user_token)
+                    window.open(synceeV7Redirect + syncee_user_token);
+                } else {
+                    window.open(synceeRedirect + syncee_access_token);
                 }
-                window.open(synceeRedirect + syncee_access_token)
-            }
-            else {
+            } else {
                 swal("Failed!", "Something went wrong!", "warning");
             }
         });
@@ -73,8 +109,10 @@ jQuery(document).ready(function () {
 
 
         function getRequirements() {
-            getDataForFrontend();
-
+            // Sequence the two calls: requirements first (sets `passed`),
+            // then data for frontend (which uses `passed` inside its success
+            // handler). Running them in parallel races: if data resolves
+            // first, checkInstalledSyncee sees passed=false and shows nothing.
             jQuery.ajax({
                 url: synceePluginRestUrl + 'getRequirements',
                 type: "get",
@@ -83,18 +121,8 @@ jQuery(document).ready(function () {
                     xhr.setRequestHeader('X-WP-Nonce', synceeRetailerNonce);
                 },
                 success: function (result) {
-                    checkRequirements(result.data)
-                    console.log(result.data)
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    console.log(thrownError);
-                    // swal({
-                    //     title: "Something went wrong!",
-                    //     text: "https://help.syncee.co/en/articles/5074038-how-to-install-syncee-to-your-wordpress-store-woocommerce-integration",
-                    //     icon: "warning",
-                    //     buttons: false,
-                    //     dangerMode: true,
-                    // });
+                    checkRequirements(result.data);
+                    getDataForFrontend();
                 }
             });
         }
@@ -109,7 +137,6 @@ jQuery(document).ready(function () {
                     xhr.setRequestHeader('X-WP-Nonce', synceeRetailerNonce);
                 },
                 success: function (result) {
-                    console.log(result.data)
                     dataToSynceeInstaller = result.data.data_to_syncee_installer;
                     synceePluginRestUrl = result.data.rest_url;
                     synceePluginSiteUrl = result.data.site_url;
@@ -150,13 +177,11 @@ jQuery(document).ready(function () {
                     xhr.setRequestHeader('X-WP-Nonce', synceeRetailerNonce);
                 },
                 success: function (result) {
-                    console.log(result.data);
                     swal("Success!", "Your Syncee account has been deleted!", "success");
                     getRequirements();
                 },
                 error: function (e) {
                     swal("Failed!", "Something went wrong! Maybe your account has already been deleted.", "warning");
-                    console.log(e);
                     getRequirements();
                 }
             });
@@ -173,7 +198,6 @@ jQuery(document).ready(function () {
             });
 
             passed = checkedRequirements === requirementsLength;
-            console.log(passed);
 
             if (!passed) {
                 generateTable(requirements);
@@ -190,11 +214,10 @@ jQuery(document).ready(function () {
         }
 
         function checkInstalledSyncee() {
-            console.log('HIDE')
             hideAllField();
 
             if (passed)
-                if (syncee_access_token) {
+                if (syncee_access_token || syncee_user_token) {
                     showOpenSyncee();
                 } else if (dataToSynceeInstaller) {
                     showRegisterToSyncee();
@@ -216,7 +239,7 @@ jQuery(document).ready(function () {
         }
 
         function showOpenSyncee() {
-            openSyncee.css("display", "inline");
+            openSyncee.css("display", "block");
         }
 
         function hideRegisterToSyncee() {
@@ -224,7 +247,7 @@ jQuery(document).ready(function () {
         }
 
         function showRegisterToSyncee() {
-            registerToSyncee.css("display", "inline");
+            registerToSyncee.css("display", "block");
         }
 
         function hideRegisterToWoocommerce() {
@@ -232,7 +255,7 @@ jQuery(document).ready(function () {
         }
 
         function showRegisterToWoocommerce() {
-            registerToWoocommerce.css("display", "inline");
+            registerToWoocommerce.css("display", "block");
         }
 
         function hideContainer() {
@@ -240,7 +263,7 @@ jQuery(document).ready(function () {
         }
 
         function showContainer() {
-            container.css("display", "inline");
+            container.css("display", "block");
         }
 
 
@@ -287,15 +310,20 @@ jQuery(document).ready(function () {
         }
 
 
-        setSynceeLogoSrc();
-
         hideContainer();
 
         getRequirements();
 
         hideAllField();
 
-        getDataForFrontend();
+        // Auto-refresh every 10s so the admin sees the connected state after
+        // returning from the Syncee installer without having to click Refresh.
+        // Skip when the tab is hidden to avoid burning requests on an idle tab.
+        setInterval(function () {
+            if (document.visibilityState !== 'hidden') {
+                getRequirements();
+            }
+        }, 10000);
     }
 
 });

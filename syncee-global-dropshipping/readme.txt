@@ -2,7 +2,7 @@
 Tags: products, suppliers, ecommerce, dropship, dropshipping
 Requires at least: 4.6
 Tested up to: 7.0
-Stable tag: 1.0.27
+Stable tag: 1.0.29
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -94,6 +94,12 @@ Try Syncee now, an excellent alternative to Faire, Ankorstore, Orderchamp, Carro
 * Readme modified.
 = 1.0.27 =
 * Tested up to WordPress 7.0. Minimum PHP raised to 7.4.
+= 1.0.28 =
+* Security: fixed unauthenticated access to admin data and hardened all plugin endpoints.
+* Refreshed the admin page design to match WordPress styling.
+= 1.0.29 =
+* Fixed an issue where the admin page could remain on "Sign up to Syncee" after a successful Syncee connection.
+* Fixed an occasional first-load issue where only the Refresh button appeared.
 
 == Frequently Asked Questions ==
 

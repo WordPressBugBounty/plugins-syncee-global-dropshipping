@@ -6,7 +6,6 @@ class Syncee
     private static $instance = null;
     private $plugin_path;
     private $plugin_url;
-    private $text_domain = 'syncee';
 
     /**
      * Creates or returns an instance of this class.
@@ -29,18 +28,10 @@ class Syncee
         $this->plugin_path = plugin_dir_path(__FILE__);
         $this->plugin_url = plugin_dir_url(__FILE__);
 
-        load_plugin_textdomain($this->text_domain, false, $this->plugin_path . '\lang');
-
         $this->init_rests();
 
         add_action('admin_enqueue_scripts', array($this, 'register_scripts'));
         add_action('admin_enqueue_scripts', array($this, 'register_styles'));
-
-        add_action('wp_enqueue_scripts', array($this, 'register_scripts'));
-        add_action('wp_enqueue_scripts', array($this, 'register_styles'));
-
-        register_activation_hook(__FILE__, array($this, 'activation'));
-        register_deactivation_hook(__FILE__, array($this, 'deactivation'));
 
         $this->run_plugin();
     }
@@ -56,56 +47,48 @@ class Syncee
     }
 
     /**
-     * Place code that runs at plugin activation here.
-     */
-    public function activation()
-    {
-    }
-
-    /**
-     * Place code that runs at plugin deactivation here.
-     */
-    public function deactivation()
-    {
-
-    }
-
-    /**
      * Enqueue and register JavaScript files here.
      */
-    public function register_scripts()
+    public function register_scripts($hook_suffix = '')
     {
-
-        if (!isset($_GET['page']) || strpos($_GET['page'], 'syncee') === false)
+        if (!is_admin()) {
             return;
+        }
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        if ('toplevel_page_syncee' !== $hook_suffix) {
+            return;
+        }
 
         wp_enqueue_script(
             'syncee-frontend-js',
             plugins_url('/JS/index.js', __FILE__),
             ['jquery'],
-            time(),
+            SYNCEE_PLUGIN_VERSION,
             true
         );
 
         wp_enqueue_script(
             'syncee-frontend-js-sweetalert',
-            plugins_url('/JS/sweetalert.js', __FILE__)
+            plugins_url('/JS/sweetalert.js', __FILE__),
+            [],
+            SYNCEE_PLUGIN_VERSION
         );
 
-        //Data for frontend
+        // SECURITY: sensitive options (syncee_access_token, syncee_user_token,
+        // data_to_syncee_installer) MUST NOT be localized here. JS reads them
+        // from the capability-gated getDataForFrontend REST endpoint.
         wp_localize_script(
             'syncee-frontend-js',
             'syncee_globals',
             [
-                'rest_url' => get_option('siteurl') . SYNCEE_RETAILER_REST_PATH,
-                'site_url' => get_option('siteurl'),
-                'syncee_access_token' => get_option('syncee_access_token', false),
-                'syncee_user_token' => get_option('syncee_user_token', false),
-                'data_to_syncee_installer' => get_option('data_to_syncee_installer', false),
+                'rest_url' => esc_url_raw(get_option('siteurl') . SYNCEE_RETAILER_REST_PATH),
+                'site_url' => esc_url_raw(get_option('siteurl')),
                 'syncee_url' => SYNCEE_URL,
                 'syncee_installer_url' => SYNCEE_INSTALLER_URL,
                 'img_dir_url' => plugins_url('/img/', __FILE__),
-                'syncee_retailer_nonce' => wp_create_nonce( 'wp_rest' ),
+                'syncee_retailer_nonce' => wp_create_nonce('wp_rest'),
             ]
         );
     }
@@ -113,13 +96,19 @@ class Syncee
     /**
      * Enqueue and register CSS files here.
      */
-    public function register_styles()
+    public function register_styles($hook_suffix = '')
     {
-       if (isset($_GET['page']))
-            if (strpos($_GET['page'], 'syncee') !== false)
-                //                 wp_enqueue_style('bootstrap', plugins_url('/View/bootstrap.css', __FILE__));
-                wp_enqueue_style('bootstrap', plugins_url('/View/index.css', __FILE__));
+        if (!is_admin()) {
+            return;
+        }
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        if ('toplevel_page_syncee' !== $hook_suffix) {
+            return;
+        }
 
+        wp_enqueue_style('syncee-admin-css', plugins_url('/View/index.css', __FILE__), [], SYNCEE_PLUGIN_VERSION);
     }
 
     public function displayInterface()
@@ -131,7 +120,7 @@ class Syncee
 
     function registerMenu()
     {
-        $icon = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMjQyIDIwNzAuNyI+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5jbHMtMSB7CiAgICAgICAgZmlsbDogIzI4NmRmODsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJtMjI0MS43LDE2NTcuM0wyMDA2LjUsMEgyMzUuNUwuMywxNjU3LjNjLS4yLDEuMi0uMywyLjUtLjMsMy43LDEsMTg1LjgsMTQ0LjEsNDA5LjcsMzI5LjYsNDA5LjdoMTU4Mi44YzE4NS41LDAsMzI4LjYtMjIzLjksMzI5LjYtNDA5LjcsMC0xLjMsMC0yLjUtLjMtMy43Wk01NDUuNiw4NTIuNGMzNS4zLTE0MC4yLDExMi4zLTI1My41LDIzMy40LTMzMiwxOTkuNy0xMjkuNiw0MDcuMS0xMzQuNSw2MTMuNy0xOC4xLDU3LjcsMzIuNSwxMDYuMSw4MS44LDE2NCwxMjcuNSwzNy4yLTI4LjMsMTMxLjYtMTAxLjksMTMxLjYtMTAxLjksMCwwLDcuMywyODYuOCwxMS41LDQzMC42LTEzOC44LTM5LjUtMjY5LjMtNzYuNi00MTEuMS0xMTYuOSw1MC40LTQwLjMsOTEuMy03My4xLDEzNC44LTEwNy45LTU5LjYtNzQuOC0xMzUuOS0xMjIuNy0yMjgtMTQyLjctMjI1LjgtNDguOS00MjkuNSw3My40LTQ5NC42LDI5NC40LTE5LjYsNjYuNS03NS42LDkxLjUtMTI3LjEsNTcuMS0zMy44LTIyLjYtMzYuNi01Ni4zLTI4LjEtOTAuMVptMTE1MS4yLDM1My45Yy01MS4zLDIxOC4yLTI0OC41LDM5My4xLTQ4MS40LDQyMS44LTE5Mi45LDIzLjgtMzU3LjQtMzcuOC00OTIuOS0xNzYuOS05LTkuMy0xNy40LTE5LjItMjktMzIuMi00NC45LDM0LjEtMTM3LjcsMTA0LjQtMTM3LjcsMTA0LjQsMCwwLTguNi0yODMuNy0xMi45LTQyNy40LDEzOC44LDM5LjUsMjY5LjMsNzYuNiw0MTEuMiwxMTYuOS01MC42LDQwLjQtOTEuNSw3My4xLTEzNS40LDEwOC4yLDc4LjQsOTMuNCwxNzcuMSwxNDcuOCwyOTcuOSwxNTIsMjEyLjksNy40LDM2My44LTEwNC4zLDQyNi0zMDgsMTUuNi01MS4yLDU4LjMtNzguNSwxMDIuNC02NS41LDQ0LjUsMTMsNjQuMyw1My44LDUxLjgsMTA2LjdaIi8+Cjwvc3ZnPg==';
+        $icon = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMjQyIDIwNzAuNyI+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5jbHMtMSB7CiAgICAgICAgZmlsbDogIzI4NmRmODsKICAgICAgfQogICAgPC9zdHlsZT4KICAKICAKICAKICAGPC9zdHlsZT4KICAKICAKICAGPC9kZWZzPgogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0ibTIyNDEuNywxNjU3LjNMMjAwNi41LDBIMjM1LjVMLjMsMTY1Ny4zYy0uMiwxLjItLjMsMi41LS4zLDMuNywxLDE4NS44LDE0NC4xLDQwOS43LDMyOS42LDQwOS43aDE1ODIuOGMxODUuNSwwLDMyOC42LTIyMy45LDMyOS42LTQwOS43LDAtMS4zLDAtMi41LS4zLTMuN1o1NDUuNiw4NTIuNGMzNS4zLTE0MC4yLDExMi4zLTI1My41LDIzMy40LTMzMiwxOTkuNy0xMjkuNiw0MDcuMS0xMzQuNSw2MTMuNy0xOC4xLDU3LjcsMzIuNSwxMDYuMSw4MS44LDE2NCwxMjcuNSwzNy4yLTI4LjMsMTMxLjYtMTAxLjksMTMxLjYtMTAxLjksMCwwLDcuMywyODYuOCwxMS41LDQzMC42LTEzOC44LTM5LjUtMjY5LjMtNzYuNi00MTEuMS0xMTYuOSw1MC40LTQwLjMsOTEuMy03My4xLDEzNC44LTEwNy45LTU5LjYtNzQuOC0xMzUuOS0xMjIuNy0yMjgtMTQyLjctMjI1LjgtNDguOS00MjkuNSw3My40LTQ5NC42LDI5NC40LTE5LjYsNjYuNS03NS42LDkxLjUtMTI3LjEsNTcuMS0zMy44LTIyLjYtMzYuNi01Ni4zLTI4LjEtOTAuMVptMTE1MS4yLDM1My45Yy01MS4zLDIxOC4yLTI0OC41LDM5My4xLTQ4MS40LDQyMS44LTE5Mi45LDIzLjgtMzU3LjQtMzcuOC00OTIuOS0xNzYuOS05LTkuMy0xNy40LTE5LjItMjktMzIuMi00NC45LDM0LjEtMTM3LjcsMTA0LjQtMTM3LjcsMTA0LjQsMCwwLTguNi0yODMuNy0xMi45LTQyNy40LDEzOC44LDM5LjUsMjY5LjMsNzYuNiw0MTEuMiwxMTYuOS01MC42LDQwLjQtOTEuNSw3My4xLTEzNS40LDEwOC4yLDc4LjQsOTMuNCwxNzcuMSwxNDcuOCwyOTcuOSwxNTIsMjEyLjksNy40LDM2My44LTEwNC4zLDQyNi0zMDgsMTUuNi01MS4yLDU4LjMtNzguNSwxMDIuNC02NS41LDQ0LjUsMTMsNjQuMyw1My44LDUxLjgsMTA2LjdaIi8+Cjwvc3ZnPg==';
 
         add_menu_page(
             "Syncee",
@@ -146,7 +135,8 @@ class Syncee
 
     function synceeMenu()
     {
-        printf((file_get_contents(__DIR__ . '/View/index.php')));
+        $img_url = plugins_url('/img/', SYNCEE_PLUGIN_DIR . '/plugin.php');
+        include __DIR__ . '/View/index.php';
     }
 
     function okToActivateSynceePlugin()
@@ -165,14 +155,7 @@ class Syncee
 
     function sendErrorMessage($title, $desc)
     {
-        printf('<div class="error">
-			    <p>' .
-            esc_html__($title)
-            . '</p>
-			    <p>
-		         <b>Error: </b>' . esc_html__($desc)
-            . '</p>
-		     </div>');
+        echo '<div class="error"><p>' . esc_html($title) . '</p><p><b>Error: </b>' . esc_html($desc) . '</p></div>';
     }
 
     function removePluginActivatedMessage()
